@@ -1,6 +1,6 @@
 import express, { json } from 'express';
 import cors from 'cors';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import dotenv from 'dotenv';
 import dayjs from 'dayjs';
 import joi from 'joi';
@@ -118,6 +118,73 @@ app.post("/registry", async (req, res) => {
       await db.collection("registries").insertOne({ ...registry, userId: user._id })
 
       res.status(201).send(registry);
+    } else {
+      res.sendStatus(401);
+    }
+  } catch {
+    res.sendStatus(500)
+  }
+});
+
+
+app.get("/registry/:id", async (req, res) => {
+  const authorization = req.header("authorization");
+  const token = authorization?.replace('Bearer ', '');
+
+  const { id } = req.params;
+
+  if (!token) return res.sendStatus(400);
+
+  try {
+
+    const session = await db.collection('sessions').findOne({ "token": token })
+
+    if (!session) {
+      return res.sendStatus(401);
+    }
+
+    const user = await db.collection("users").findOne({
+      _id: session.userId
+    })
+
+    if (user) {
+
+      let registry = await db.collection("registries").findOne({ _id: new ObjectId(id) })
+
+      res.status(200).send(registry);
+    } else {
+      res.sendStatus(401);
+    }
+  } catch {
+    res.sendStatus(500)
+  }
+});
+
+app.delete("/registry/:id", async (req, res) => {
+  const authorization = req.header("authorization");
+  const token = authorization?.replace('Bearer ', '');
+
+  const { id } = req.params;
+
+  if (!token) return res.sendStatus(400);
+
+  try {
+
+    const session = await db.collection('sessions').findOne({ "token": token })
+
+    if (!session) {
+      return res.sendStatus(401);
+    }
+
+    const user = await db.collection("users").findOne({
+      _id: session.userId
+    })
+
+    if (user) {
+
+      await db.collection("registries").deleteOne({ _id: new ObjectId(id) })
+
+      res.status(200).send("ok");
     } else {
       res.sendStatus(401);
     }
