@@ -8,7 +8,6 @@ import { stripHtml } from "string-strip-html";
 import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcrypt';
 
-const token = uuid();
 dotenv.config();
 
 const app = express();
@@ -22,9 +21,6 @@ mongoClient.connect(() => {
   db = mongoClient.db("my-wallet-alan");
 });
 
-app.get("/hello", (req, res) => {
-  res.send("Ola mundo!");
-});
 
 app.post("/sign-up", async (req, res) => {
   // userName, email, senha
@@ -115,7 +111,7 @@ app.post("/registry", async (req, res) => {
 
       const registry = req.body
 
-      await db.collection("registries").insertOne({ ...registry, userId: user._id })
+      await db.collection("registries").insertOne({ ...registry, date: Date.now(), userId: user._id })
 
       res.status(201).send(registry);
     } else {
@@ -126,39 +122,6 @@ app.post("/registry", async (req, res) => {
   }
 });
 
-
-app.get("/registry/:id", async (req, res) => {
-  const authorization = req.header("authorization");
-  const token = authorization?.replace('Bearer ', '');
-
-  const { id } = req.params;
-
-  if (!token) return res.sendStatus(400);
-
-  try {
-
-    const session = await db.collection('sessions').findOne({ "token": token })
-
-    if (!session) {
-      return res.sendStatus(401);
-    }
-
-    const user = await db.collection("users").findOne({
-      _id: session.userId
-    })
-
-    if (user) {
-
-      let registry = await db.collection("registries").findOne({ _id: new ObjectId(id) })
-
-      res.status(200).send(registry);
-    } else {
-      res.sendStatus(401);
-    }
-  } catch {
-    res.sendStatus(500)
-  }
-});
 
 app.delete("/registry/:id", async (req, res) => {
   const authorization = req.header("authorization");
@@ -183,6 +146,42 @@ app.delete("/registry/:id", async (req, res) => {
     if (user) {
 
       await db.collection("registries").deleteOne({ _id: new ObjectId(id) })
+
+      res.status(200).send("ok");
+    } else {
+      res.sendStatus(401);
+    }
+  } catch {
+    res.sendStatus(500)
+  }
+});
+
+app.put("/registry/:id", async (req, res) => {
+  const authorization = req.header("authorization");
+  const token = authorization?.replace('Bearer ', '');
+
+  const { id } = req.params;
+  const editRegistry = req.body;
+
+  if (!token) return res.sendStatus(400);
+
+  try {
+
+    const session = await db.collection('sessions').findOne({ "token": token })
+
+    if (!session) {
+      return res.sendStatus(401);
+    }
+
+    const user = await db.collection("users").findOne({
+      _id: session.userId
+    })
+
+    if (user) {
+
+      await db.collection("registries").updateOne({ _id: new ObjectId(id) },
+        { $set: editRegistry }
+      )
 
       res.status(200).send("ok");
     } else {
