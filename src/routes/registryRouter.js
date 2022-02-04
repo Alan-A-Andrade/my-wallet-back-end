@@ -9,8 +9,6 @@ registryRouter.use(validateToken)
 
 registryRouter.post("/mywallet/registry", validateRegistrySchemaMiddleware, postRegistry);
 
-
-
 registryRouter.put("/mywallet/registry/:id", validateRegistrySchemaMiddleware, editRegistry);
 
 registryRouter.delete("/mywallet/registry/:id", deleteRegistry);
