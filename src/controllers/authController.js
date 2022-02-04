@@ -1,6 +1,5 @@
 import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcrypt';
-import joi from 'joi';
 import { stripHtml } from "string-strip-html";
 import db from '../db.js';
 
@@ -8,17 +7,6 @@ import db from '../db.js';
 export async function signUp(req, res) {
   // username, email, password
   const user = req.body;
-  const userSchema = joi.object({
-    username: joi.string().required(),
-    email: joi.string().required(),
-    password: joi.string().required(),
-  })
-
-  const validation = userSchema.validate(user);
-  if (validation.error) {
-    res.sendStatus(422)
-    return
-  }
 
   user.username = stripHtml(user.username).result.trim();
   user.password = stripHtml(user.password).result;
@@ -44,18 +32,8 @@ export async function signUp(req, res) {
 
 
 export async function signIn(req, res) {
+
   let { email, password } = req.body;
-
-  const loginSchema = joi.object({
-    email: joi.string().required(),
-    password: joi.string().required(),
-  })
-
-  const validation = loginSchema.validate(req.body);
-  if (validation.error) {
-    res.sendStatus(422)
-    return
-  }
 
   password = stripHtml(password).result;
   email = stripHtml(email).result.trim();
