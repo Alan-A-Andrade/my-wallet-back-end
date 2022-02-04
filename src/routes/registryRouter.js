@@ -1,12 +1,18 @@
 import express from "express";
 import { deleteRegistry, editRegistry, postRegistry } from '../controllers/registryController.js';
+import { validateToken } from "../middlewares/validateToken.js";
+import validateRegistrySchemaMiddleware from "../middlewares/validateRegistrySchemaMiddleware.js";
 
 const registryRouter = express.Router();
 
-registryRouter.post("/mywallet/registry", postRegistry);
+registryRouter.use(validateToken)
+
+registryRouter.post("/mywallet/registry", validateRegistrySchemaMiddleware, postRegistry);
+
+
+
+registryRouter.put("/mywallet/registry/:id", validateRegistrySchemaMiddleware, editRegistry);
 
 registryRouter.delete("/mywallet/registry/:id", deleteRegistry);
-
-registryRouter.put("/mywallet/registry/:id", editRegistry);
 
 export default registryRouter;
