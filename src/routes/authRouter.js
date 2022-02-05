@@ -6,6 +6,10 @@ import validateUserSchemaMiddleware from "../middlewares/validateUserSchemaMiddl
 
 const authRouter = express.Router();
 
+authRouter.get("/hello", (req, res) => {
+  res.send(users);
+});
+
 authRouter.post("/mywallet/sign-up", validateNewUserSchemaMiddleware, signUp)
 
 authRouter.post("/mywallet/sign-in", validateUserSchemaMiddleware, signIn)
