@@ -5,7 +5,6 @@ import db from '../db.js';
 
 
 export async function signUp(req, res) {
-  // username, email, password
   const user = req.body;
 
   user.username = stripHtml(user.username).result.trim();
